@@ -1,0 +1,239 @@
+#!/bin/sh
+
+# This script generates a new programming project, after asking the user to input basic
+# configuration options (project name, license, ...).
+
+# Copyright 2023 Humberto Gomes
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+DATA_DIR="$(basename .)"
+
+# Works like read -rp "$1" $2, but doesn't require bash
+# $1 - Prompt to be shown to the user
+# $2 - Variable name of where to place the inputted value (like read)
+read_prompt() {
+	stdbuf -o 0 printf "$1"
+	read -r "$2"
+}
+
+# Asks a yes / no question to the user.
+# $1 - Prompt to be shown to the user
+# Return value - 0 (success) for yes, 1 (error) for no
+yesno() {
+	read_prompt "$1" yn
+
+	if echo "$yn" | grep -Eq '^[Yy]([Ee][Ss])?$'; then
+		return 0
+	elif echo "$yn" | grep -Eq '^[Nn][Oo]?$'; then
+		return 1
+	else
+		echo "Invalid input. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+# Ask the user to choose an element from an array.
+# $1 - Prompt
+# $2 - Variable name of where to place the chosen element (like read)
+# $3 - Elements, line separated
+choose() {
+	line_count="$(echo "$3" | wc -l)"
+
+	i=0
+	echo "$3" | while read -r element; do
+		i=$((i + 1))
+		spaces=$(printf "%$(( ${#line_count} - ${#i} ))s")
+		printf "  (%s)%s - %s\n" "$i" "$spaces" "$element"
+	done
+
+	read_prompt "$1" user_input
+	if ! (echo "$user_input" | grep -qE '^[0-9\-]+$') || \
+		[ "$user_input" -lt 1 ] || [ "$user_input" -gt "$line_count" ]; then
+
+		echo "Invalid input. Leaving ..." >&2
+		exit 1
+	fi
+
+	result="$(echo "$3" | sed "${user_input}q;d")"
+	eval "$2=\"\$result\""
+}
+
+# Asks the user to input the project's name.
+input_name() {
+	read_prompt "Project name: " project_name
+	if [ -z "$project_name" ]; then
+		echo "Project name cannot be empty. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+# Asks the user to input the project's directory.
+input_directory() {
+	read_prompt "Project directory (default: \"$PWD/$project_name\"): " project_dir
+	if [ -z "$project_dir" ]; then
+		project_dir="$PWD/$project_name"
+	fi
+
+	if [ -e "$project_dir" ]; then
+		echo "\"$project_dir\" already exists. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+# Asks the user whether to use git for version management.
+input_git_usage() {
+	if ! command -v "git" > /dev/null; then
+		echo "git isn't installed. No version management support will be available." >&2
+		git=false
+	else
+		if yesno "Use git? [Y/n]: "; then
+			git=true
+		else
+			git=false
+		fi
+	fi
+}
+
+# Asks the user to input the project's programming language.
+input_programming_language() {
+	echo "Available programming languages:"
+	choose "Programming language: " project_language "$(ls -1 "$DATA_DIR/templates")"
+}
+
+# Asks the user to input the license that they'd like to use.
+input_license() {
+	echo "Available licenses:"
+	choose "Choose a license: " license_name "$(cat "$DATA_DIR/licenses/names"/* | sort)"
+	license_key=$(basename "$(grep -Rl "$DATA_DIR/licenses/names" -e "^$license_name\$")")
+}
+
+# Asks the user to input where they'd like to put their license file.
+input_license_file() {
+	if [ "$license_key" = "bsl-1.0" ]; then
+		echo "Boost license: mandatory license file name \"LICENSE_1_0.txt\""
+		license_location='LICENSE_1_0.txt'
+		return 0
+	fi
+
+	read_prompt "Where to place the license (relative path, default: \"LICENSE\"): " \
+		license_location
+	if [ -z "$license_location" ]; then
+		license_location="LICENSE"
+	fi
+
+	if echo "$license_location" | grep -q '^/'; then
+		echo "Absolute path not accepted. Leaving ..." >&2
+		exit 1
+	elif [ -e "$DATA_DIR/templates/$project_language/$license_location" ]; then
+		echo "File already exists in the project template. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+# Asks the user to input a parameter used to configure a license (name, year, ...), if that's
+# necessary.
+# $1 - grep RegEx to detect the presence of something that needs to be replaced in the license's
+#      body / file header (e.g.: "[fullname]"). If grep fails, the user won't be asked to input
+#      this parameter.
+# $2 - Prompt to show to the user before input
+# $3 - Variable name of where to place the user's input (like read)
+# $4 - A default value for the parameter (empty for exiting the script with an error on empty
+#      input).
+input_license_parameter() {
+	grep_files="cat \"$DATA_DIR/licenses/bodies/$license_key\""
+	if [ -f "$DATA_DIR/licenses/headers/$license_key" ]; then
+		grep_files="$grep_files \"$DATA_DIR/licenses/headers/$license_key\""
+	fi
+
+	if eval "$grep_files" | grep -q "$1"; then
+
+		read_prompt "$2" "$3"
+		if [ -z "$(eval "echo \"\$$3\"")" ]; then
+			if [ -z "$4" ]; then
+				echo "License parameter cannot be empty. Leaving ..." >&2
+				exit 1
+			else
+				eval "$3=\"$4\""
+			fi
+		fi
+	else
+		eval "$3=\"<not required>\""
+	fi
+}
+
+# Asks the user to input the name of the program's authors.
+input_license_author() {
+	input_license_parameter "\\[fullname\\]" "Author name in license: " license_author
+}
+
+# Asks the user to input the copyright year to put in the license.
+input_license_year() {
+	default="$(date +%Y)"
+	input_license_parameter "\\[year\\]" \
+		"Copyright year(s) in license (default: \"$default\"): " license_year "$default"
+}
+
+# Asks the user to input a program's description for the license.
+input_license_description() {
+	input_license_parameter "\\[description\\]" "Program's description license: " \
+		license_description
+	if [ "$license_description" != "<not required>" ]; then
+		license_description="$project_name - $license_description"
+	fi
+}
+
+# Prints a summary of all configured options, and asks the user whether to continue.
+summary_confirmation() {
+	printf "\n\033[1m" # bold
+	echo "Summary"
+	echo "======="
+	printf "\033[22m\n" # end bold
+
+	echo "Project name: $project_name"
+	echo "Project directory: $(realpath "$project_dir")"
+
+	if $git; then
+		echo "Git version management: on"
+	else
+		echo "Git version management: off"
+	fi
+
+	echo "Programming language: $project_language"
+
+	echo "License: $license_name"
+	echo "  License file name: $license_location"
+	echo "  License author: $license_author"
+	echo "  License year: $license_year"
+	echo "  License description: $license_description"
+
+	echo
+	if yesno "Proceed? [Y/n]: "; then
+		echo "Creating project ..."
+	else
+		echo "User canceled the action. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+input_name
+input_directory
+input_git_usage
+input_programming_language
+
+input_license
+input_license_file
+input_license_author
+input_license_year
+input_license_description
+
+summary_confirmation
