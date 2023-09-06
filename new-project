@@ -107,7 +107,7 @@ input_git_usage() {
 # Asks the user to input the project's programming language.
 input_programming_language() {
 	echo "Available programming languages:"
-	choose "Programming language: " project_language "$(ls -1 "$DATA_DIR/templates")"
+	choose "Programming language: " project_language "$(ls -1 "$DATA_DIR/templates" | sort)"
 }
 
 # Asks the user to input the license that they'd like to use.
@@ -225,6 +225,70 @@ summary_confirmation() {
 	fi
 }
 
+# Copies the project template to the target directory.
+create_project_copy() {
+	# Copy contents
+	if ! cp -r "$DATA_DIR/templates/$project_language" "$project_dir"; then
+		echo "Failed to copy template to project directory. Leaving ..." >&2
+		exit 1
+	fi
+}
+
+# If required, initializes the project's directory as a git repository.
+create_project_git() {
+	if $git; then
+		if ! git init "$project_dir"; then
+			echo "Failed to initialize git repository. Leaving ..." >&2
+			exit 1
+		fi
+	elif [ -e "$project_dir/.gitignore" ]; then
+		if ! rm "$project_dir/.gitignore"; then
+			echo "Failed to remove unnecessary .gitignore. Leaving ..." >&2
+			exit 1
+		fi
+	fi
+}
+
+# Creates the project's license file, and a license header variable.
+create_project_license() {
+	# Replaces elements in licenses ([fullname], [year], [description]) by their values.
+	# stdin - license body / header
+	# stdout - modified license header / body
+	license_replace() {
+		license_author_esc=$(echo "$license_author" | sed 's/[&/\]/\\&/g')
+		license_year_esc=$(echo "$license_year" | sed 's/[&/\]/\\&/g')
+		license_description_esc=$(echo "$license_description" | sed 's/[&/\]/\\&/g')
+
+		sed "s/\\[fullname\\]/$license_author_esc/g ; s/\\[year\\]/$license_year_esc/g ; s/\\[description\\]/$license_description_esc/g"
+	}
+
+	if ! mkdir -p "$project_dir/$(dirname "$license_location")"; then
+		echo "Failed to create directory where to put the license. Leaving ..." >&2
+		exit 1
+	fi
+
+	cat "$DATA_DIR/licenses/bodies/$license_key" | license_replace > \
+		"$project_dir/$license_location"
+
+	# Create license header variable
+	if [ -f "$DATA_DIR/licenses/headers/$license_key" ]; then
+		license_header=$(license_replace < "$DATA_DIR/licenses/headers/$license_key")
+	else
+		license_header=""
+	fi
+}
+
+# Calls template-specific code, used for the replacement of parameters like project name, and the
+# placement of license headers.
+create_project_template_specific() {
+	cd "$project_dir"
+	echo "$PWD"
+	. "./new-project"
+	rm "new-project"
+
+	echo "Done! :-)"
+}
+
 input_name
 input_directory
 input_git_usage
@@ -237,3 +301,8 @@ input_license_year
 input_license_description
 
 summary_confirmation
+
+create_project_copy
+create_project_git
+create_project_license
+create_project_template_specific
