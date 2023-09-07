@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DATA_DIR="$(basename .)"
+DATA_DIR="$PWD"
 
 # Works like read -rp "$1" $2, but doesn't require bash
 # $1 - Prompt to be shown to the user
@@ -237,7 +237,7 @@ create_project_copy() {
 # If required, initializes the project's directory as a git repository.
 create_project_git() {
 	if $git; then
-		if ! git init "$project_dir"; then
+		if ! git init "$project_dir" > /dev/null; then
 			echo "Failed to initialize git repository. Leaving ..." >&2
 			exit 1
 		fi
@@ -282,7 +282,6 @@ create_project_license() {
 # placement of license headers.
 create_project_template_specific() {
 	cd "$project_dir"
-	echo "$PWD"
 	. "./new-project"
 	rm "new-project"
 

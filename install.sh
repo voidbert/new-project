@@ -1,11 +1,23 @@
 #!/bin/sh
 
-# This script automatically gets information about popular open source licenses, through the GitHub
-# API. This is a tool for developers of this project generator. Regular users, by cloning the
-# repository, should already have these licenses installed.
+# This script is responsible for installed new-project in the system. Multiple types of
+# installation are available.
 #
-# ./licenses.sh build - create licenses directory
-# ./licenses.sh clean - delete cache directories
+# ./install.sh local  - user-local installation
+# ./install.sh system - system-wide installation
+# ./install.sh dev    - developer installation
+#
+# The software can be uninstalled with ./install.sh uninstall [local | system | dev].
+# The install directories for these modes can be modified below:
+
+LOCAL_DATA_DIR="$HOME/.local/share/new-project"
+LOCAL_BIN_DIR="$HOME/.local/bin"
+
+SYS_DATA_DIR="/usr/share/new-project"
+SYS_BIN_DIR="/usr/bin"
+
+DEV_DATA_DIR="$PWD"
+DEV_BIN_DIR="$PWD"
 
 # Copyright 2023 Humberto Gomes
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +32,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-OUTPUT_DIR="licenses"
 TMP_DIR="/tmp/new-project"
 
 # Makes sure the script has access to all dependencies it needs to work.
@@ -36,11 +47,88 @@ assert_dependencies() {
 	fi
 }
 
+# Parse command-line arguments and determine the action that should be performed.
+parse_arguments() {
+	# Print installed command-line usage.
+	usage() {
+		echo "Unknown command line arguments! Usage:" >&2
+		echo >&2
+		echo "./install.sh local  - user-local installation" >&2
+		echo "./install.sh system - system-wide installation" >&2
+		echo "./install.sh dev    - developer installation" >&2
+		echo >&2
+		echo "./install.sh uninstall [local | system | dev] - uninstallation" >&2
+	}
+
+	# Sets the $DATA_DIR and $BIN_DIR
+	# $1 - type of installation
+	set_directories() {
+		if [ "$1" = "local" ]; then
+			DATA_DIR="$LOCAL_DATA_DIR"
+			BIN_DIR="$LOCAL_BIN_DIR"
+		elif [ "$1" = "system" ]; then
+
+			# Assert root
+			if [ "$(id -u)" != "0" ]; then
+				echo "Root permissions are needed for a system (un)installation." \
+					"Leaving ..." >&2
+				exit 1
+			fi
+
+			DATA_DIR="$SYS_DATA_DIR"
+			BIN_DIR="$SYS_BIN_DIR"
+		elif [ "$1" = "dev" ]; then
+			DATA_DIR="$DEV_DATA_DIR"
+			BIN_DIR="$DEV_BIN_DIR"
+		elif [ "$1" = "uninstall" ]; then
+			usage # Use a less cryptic error message
+			exit 1
+		else
+			echo "Unknown (un)installation type \"$1\". Leaving ..." >&2
+			exit 1
+		fi
+	}
+
+	if [ "$#" -eq 1 ]; then
+		action="install"
+		set_directories "$1"
+	elif [ "$#" -eq 2 ] && [ "$1" = "uninstall" ]; then
+		action="uninstall"
+		set_directories "$2"
+	else
+		usage
+		exit 1
+	fi
+}
+
+# Uninstalls new-project.
+uninstall() {
+	if [ "$(realpath "$DATA_DIR")" = "$PWD" ]; then
+		# Don't delete templates (dev build)
+		if ! rm -r "$DATA_DIR/licenses"; then
+			echo "Failed to delete licenses directory. Leaving ..." >&2
+			exit 1
+		fi
+	else
+		# Delete all data
+		if ! rm -r "$DATA_DIR"; then
+			echo "Failed to delete new-project's data directory. Leaving ..." >&2
+			exit 1
+		fi
+	fi
+
+	if [ "$(realpath "$BIN_DIR")" != "$PWD" ]; then
+		if ! rm "$BIN_DIR/new-project"; then
+			echo "Failed to delete new-project's script. Leaving ..." >&2
+			exit 1
+		fi
+	fi
+}
+
 # Creates a directory, but exits the script if the directory already exists and isn't empty.
 mkdir_not_empty() {
 	if [ -d "$1" ] && [ -n "$(ls -A "$1")" ]; then
-		printf "%s already exists and isn't empty. You can clear the cache with " "$1" >&2
-		echo "./licenses.sh clean. Leaving ..." >&2
+		echo "\"$1\" already exists and isn't empty." >&2
 		exit 1
 	elif ! mkdir -p "$1"; then
 		echo "mkdir -p $1 failed. Leaving ..." >&2
@@ -52,7 +140,7 @@ mkdir_not_empty() {
 # $1 - Request URL is "https://api.github.com/$1"
 # $2 - Path to the output file
 github_request() {
-	if ! curl -so "$2" "https://api.github.com/$1"; then
+	if ! curl -s -m 10 --retry-delay 5 --retry 5 -o "$2" "https://api.github.com/$1"; then
 		echo "curl failed while (https://api.github.com/$1). Leaving ..." >&2
 		exit 1
 	fi
@@ -69,10 +157,12 @@ download_license_data() {
 	known_licenses=" agpl-3.0 apache-2.0 bsd-2-clause bsd-3-clause bsl-1.0 cc0-1.0 epl-2.0 gpl-2.0 gpl-3.0 lgpl-2.1 mit mpl-2.0 unlicense "
 
 	echo "Downloading licenses from GitHub API ..."
+	echo "  - downloading license list"
 	mkdir_not_empty "$TMP_DIR/licenses"
 	github_request "licenses" "$TMP_DIR/licenses.json"
 
 	for key in $(jq -r ".[].key" "$TMP_DIR/licenses.json"); do
+		echo "  - downloading $key"
 		github_request "licenses/$key" "$TMP_DIR/licenses/$key"
 
 		if ! echo "$known_licenses" | grep -q " $key "; then
@@ -82,12 +172,12 @@ download_license_data() {
 	done
 }
 
-# Creates all the needed subdirectories in $OUTPUT_DIR, along with a README warning, telling that
-# the files in $OUTPUT_DIR are autogenerated.
+# Creates all the needed subdirectories in $DATA_DIR, along with a README warning, telling that
+# the files in $DATA_DIR/licenses are autogenerated.
 create_output_directory_structure() {
-	mkdir_not_empty "$OUTPUT_DIR/names"
-	mkdir_not_empty "$OUTPUT_DIR/headers"
-	mkdir_not_empty "$OUTPUT_DIR/bodies"
+	mkdir_not_empty "$DATA_DIR/licenses/names"
+	mkdir_not_empty "$DATA_DIR/licenses/headers"
+	mkdir_not_empty "$DATA_DIR/licenses/bodies"
 
 	{
 		echo "# Licenses" ;
@@ -95,23 +185,24 @@ create_output_directory_structure() {
 		echo "These license files were autogenerated by [licenses.sh](../licenses.sh), by" ;
 		printf "getting data from the " ;
 		echo "[GitHub API](https://docs.github.com/en/rest/licenses/licenses)." ;
-	} > "$OUTPUT_DIR/README.md"
+	} > "$DATA_DIR/licenses/README.md"
 }
 
-# Generates the human-readable names of licenses in $OUTPUT_DIR/names, from previously downloaded
-# license information.
+# Generates the human-readable names of licenses in $DATA_DIR/licenses/names, from previously
+# downloaded license information.
 generate_license_names() {
 	echo "Generating license names ..."
 	for license in "$TMP_DIR/licenses"/*; do
-		jq -r ".name" "$license" > "$OUTPUT_DIR/names/$(basename "$license")"
+		jq -r ".name" "$license" > "$DATA_DIR/licenses/names/$(basename "$license")"
 	done
 }
 
-# Generates the licenses bodies in $OUTPUT_DIR/bodies, from previously downloaded license information.
+# Generates the licenses bodies in $DATA_DIR/licenses/bodies, from previously downloaded license
+# information.
 generate_license_bodies() {
 	echo "Generating license bodies ..."
 	for license in "$TMP_DIR/licenses"/*; do
-		jq -r ".body[:-1]" "$license" > "$OUTPUT_DIR/bodies/$(basename "$license")"
+		jq -r ".body[:-1]" "$license" > "$DATA_DIR/licenses/bodies/$(basename "$license")"
 	done
 }
 
@@ -139,7 +230,7 @@ generate_license_headers() {
 
 		jq -r ".body" "$TMP_DIR/licenses/$1" | \
 			tail -n "+$2" | head -n "$(($3 - $2 + 1))" | eval "$final_command" \
-			> "$OUTPUT_DIR/headers/$1"
+			> "$DATA_DIR/licenses/headers/$1"
 	}
 
 	# Command used to format (A/L)GPL licenses
@@ -162,7 +253,7 @@ generate_license_headers() {
 		echo "Distributed under the Boost Software License, Version 1.0." ;
 		echo "   (See accompanying file LICENSE_1_0.txt or copy at" ;
 		echo "         https://www.boost.org/LICENSE_1_0.txt)" ;
-	} > "$OUTPUT_DIR/headers/bsl-1.0"
+	} > "$DATA_DIR/licenses/headers/bsl-1.0"
 
 	header_from_lines "gpl-2.0" 293 308 gpl_command
 	header_from_lines "gpl-3.0" 634 648 gpl_command
@@ -171,28 +262,49 @@ generate_license_headers() {
 
 	# Warning for missing headers
 	echo "You can add a custom license file header to licenses that don't contain one. Check" \
-	     "\"$OUTPUT_DIR/headers\". Here are those licenses:"
+	     "\"$DATA_DIR/licenses/headers\". Here are those licenses:"
 	echo ""
 
-	for license in "$OUTPUT_DIR/names"/*; do
-		if ! [ -f "$OUTPUT_DIR/headers/$(basename "$license")" ]; then
+	for license in "$DATA_DIR/licenses/names"/*; do
+		if ! [ -f "$DATA_DIR/licenses/headers/$(basename "$license")" ]; then
 			cat "$license"
 		fi
 	done
 }
 
-if [ "$#" -eq 1 ] && [ "$1" = "clean" ]; then
-	rm -r "$OUTPUT_DIR" "$TMP_DIR"
-elif [ "$#" -eq 1 ] && [ "$1" = "build" ]; then
+# Installs project templates to $DATA_DIR.
+install_templates() {
+	if [ "$(realpath "$DATA_DIR")" != "$PWD" ]; then # Not dev install
+		if ! cp -r "./templates" "$DATA_DIR/templates"; then
+			echo "Failed to install templates' directory. Leaving ..." >&2
+			exit 1
+		fi
+	fi
+}
+
+# Installs the new-project shell script.
+install_binaries() {
+	if [ "$(realpath "$DATA_DIR")" != "$PWD" ]; then # Not dev install
+		sed "s:DATA_DIR=\"\$PWD\":DATA_DIR=\"$DATA_DIR\":g" new-project > \
+			"$BIN_DIR/new-project"
+		chmod +x "$BIN_DIR/new-project"
+	fi
+}
+
+parse_arguments "$@"
+
+if [ "$action" = "install" ]; then
 	assert_dependencies
-	#download_license_data
 	create_output_directory_structure
+	download_license_data
 
 	generate_license_names
 	generate_license_bodies
 	generate_license_headers
+
+	install_templates
+	install_binaries
+	echo "Done! :-)"
 else
-	echo "Unknown command line arguments! Usage:"
-	echo "./licenses.sh build - create licenses directory"
-	echo "./licenses.sh clean - delete cache directories"
+	uninstall
 fi
