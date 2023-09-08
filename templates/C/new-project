@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# This script is sourced by ../../new-project, and its job is to set up the C project, after which
+# it'll be deleted. The $PWD this script starts with should be the one of the final project, with
+# all files copied. This script will change parameters like project name through all files.
+
+# Copyright 2023 Humberto Gomes
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Takes in text and outputs that text as a C comment.
+# stdin - Text input
+# stdout - Comment output
+comment_c() {
+	first_byte="$(dd bs=1 count=1 2> /dev/null)"
+	if [ -n "$first_byte" ]; then
+		echo "$first_byte$(cat -)" | \
+			sed -e ' s/^/ * /g ; 1s/^/\/*\n/g ; $s/$/\n *\//g ; s/[ \t]$//g'
+	fi
+}
+
+# Takes in text and outputs that text as a shell script / makefile comment.
+# stdin - Text input
+# stdout - Comment output
+comment_make_shell() {
+	first_byte="$(dd bs=1 count=1 2> /dev/null)"
+	if [ -n "$first_byte" ]; then
+		echo "$first_byte$(cat -)" | sed -e ' s/^/# /g ; s/[ \t]$//g'
+	fi
+}
+
+# Escapes characters in a license header, to make it adequate for sed substitution.
+# stdin - Header input
+# stdout - Escaped output
+escape_license_header() {
+	# Also add extra newline to separate license from file contents
+	sed 's/[&/\]/\\&/g' | sed -z 's/\n/\\n/g ; s/$/\\n/g'
+}
+
+replace_variables() {
+	echo "$license_header" | comment_c | escape_license_header > "/tmp/new-project-c-header"
+	echo "$license_header" | comment_make_shell | escape_license_header \
+		> "/tmp/new-project-make-shell-header"
+
+	mkdir include # not tracked by new-project's git repository
+
+	find "." -name '*.c' -o -name "*.h" -type f | while read -r file; do
+		sed -zi "s/\\/\\* %LICENSE_HEADER% \\*\\/\\n/$(cat "/tmp/new-project-c-header")/" \
+			"$file"
+	done
+
+	rm "/tmp/new-project-c-header" "/tmp/new-project-make-shell-header"
+}
+
+replace_variables
