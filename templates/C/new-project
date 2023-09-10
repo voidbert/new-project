@@ -53,10 +53,19 @@ replace_variables() {
 
 	mkdir include # not tracked by new-project's git repository
 
+	# License header for C sources and headers
 	find "." -name '*.c' -o -name "*.h" -type f | while read -r file; do
 		sed -zi "s/\\/\\* %LICENSE_HEADER% \\*\\/\\n/$(cat "/tmp/new-project-c-header")/" \
 			"$file"
 	done
+
+	# License header for makefiles and shell scripts
+	find "." -name 'Makefile' -o -name '*.sh' -type f | while read -r file; do
+		sed -zi "s/# %LICENSE_HEADER%\\n/$(cat "/tmp/new-project-make-shell-header")/" "$file"
+	done
+
+	# Extra makefile modification for project name
+	sed -i "s/%PROJECT_NAME%/$(echo "$project_name" | sed 's/[&/\]/\\&/g')/g" Makefile
 
 	rm "/tmp/new-project-c-header" "/tmp/new-project-make-shell-header"
 }
