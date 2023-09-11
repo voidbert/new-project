@@ -34,7 +34,30 @@ else
 endif
 CFLAGS += $(STANDARDS)
 
+# Only generate dependencies for tasks that require them
+# THIS WILL NOT WORK IF YOU TRY TO MAKE A INDIVIDUAL FILES
+ifeq (, $(MAKECMDGOALS))
+	INCLUDE_DEPENDS = Y
+else ifneq (, $(filter default, $(MAKECMDGOALS)))
+	INCLUDE_DEPENDS = Y
+else ifneq (, $(filter all, $(MAKECMDGOALS)))
+	INCLUDE_DEPENDS = Y
+else ifneq (, $(filter install, $(MAKECMDGOALS)))
+	INCLUDE_DEPENDS = Y
+else
+	INCLUDE_DEPENDS = N
+endif
+
+ifeq (Y, $(INCLUDE_DEPENDS))
+include $(DEPENDS)
+endif
+
+ifeq (Y, $(INCLUDE_DEPENDS))
+include $(DEPENDS)
+endif
+
 default: $(BUILDDIR)/$(EXENAME)
+all: $(BUILDDIR)/$(EXENAME) $(DOCSDIR)
 
 # Welcome to my unorthodox Makefile! To get auto-dependency generation working, this code is
 # unusual for a Makefile, but hey, it works!
@@ -75,11 +98,6 @@ $(DEPDIR)/%.d: src/%.c Makefile
 	@printf "\t$(RULE_CMD_FORMAT)\n" >> $@
 	@printf "\t$(RULE_CMD_ADD_COMMANDS)\n" >> $@
 	@printf "\t$(RULE_CMD_COPY)\n" >> $@
-
-# Only generate dependencies for tasks that require them
-ifeq (, $(filter clean, $(MAKECMDGOALS)))
-include $(DEPENDS)
-endif
 
 $(BUILDDIR)/$(EXENAME): $(OBJECTS)
 	@mkdir -p $(BUILDDIR)
