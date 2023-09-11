@@ -14,6 +14,7 @@ RELEASE_CFLAGS  := -O2
 BUILDDIR        := build
 EXENAME         := %PROJECT_NAME%
 DEPDIR          := deps
+DOCSDIR         := docs
 OBJDIR          := obj
 
 # END OF CONFIGURATION
@@ -81,6 +82,24 @@ $(BUILDDIR)/$(EXENAME): $(OBJECTS)
 	@mkdir -p $(BUILDDIR)
 	$(CC) -o $@ $^ $(LIBS)
 
+define Doxyfile
+	INPUT                  = include src README.md
+	RECURSIVE              = YES
+	EXTRACT_ALL            = YES
+	FILE_PATTERNS          = *.h *.c
+
+	PROJECT_NAME           = %PROJECT_NAME%
+	USE_MDFILE_AS_MAINPAGE = README.md
+
+	OUTPUT_DIRECTORY       = $(DOCSDIR)
+	GENERATE_HTML          = YES
+	GENERATE_LATEX         = NO
+endef
+export Doxyfile
+
+$(DOCSDIR): $(SOURCES) $(HEADERS)
+	echo "$$Doxyfile" | doxygen -
+
 .PHONY: clean
 clean:
-	rm -r $(BUILDDIR) $(DEPDIR) $(OBJDIR) 2> /dev/null ; true
+	rm -r $(BUILDDIR) $(DEPDIR) $(DOCSDIR) $(OBJDIR) 2> /dev/null ; true
