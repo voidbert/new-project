@@ -17,6 +17,9 @@ DEPDIR          := deps
 DOCSDIR         := docs
 OBJDIR          := obj
 
+# Default installation directory (if PREFIX is not set)
+PREFIX          ?= $(HOME)/.local
+
 # END OF CONFIGURATION
 
 SOURCES = $(shell find "src" -name '*.c' -type f)
@@ -103,3 +106,10 @@ $(DOCSDIR): $(SOURCES) $(HEADERS)
 .PHONY: clean
 clean:
 	rm -r $(BUILDDIR) $(DEPDIR) $(DOCSDIR) $(OBJDIR) 2> /dev/null ; true
+
+install: $(BUILDDIR)/$(EXENAME)
+	install -Dm 777 $(BUILDDIR)/$(EXENAME) $(PREFIX)/bin
+
+.PHONY: uninstall
+uninstall:
+	rm $(PREFIX)/bin/%PROJECT_NAME%
