@@ -66,6 +66,11 @@ replace_variables() {
 
 	# Extra makefile modification for project name
 	sed -i "s/%PROJECT_NAME%/$(echo "$project_name" | sed 's/[&/\]/\\&/g')/g" Makefile
+	if $git; then
+		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%/# Also, these may need to be updated in .gitignore/g' Makefile
+	else
+		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%\n//g' Makefile
+	fi
 
 	rm "/tmp/new-project-c-header" "/tmp/new-project-make-shell-header"
 }

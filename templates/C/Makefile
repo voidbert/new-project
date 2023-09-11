@@ -10,7 +10,7 @@ DEBUG_CFLAGS    := -O0 -ggdb
 RELEASE_CFLAGS  := -O2
 
 # Note: none of these directories can be the root of the project
-# Also, these may need to be updated in .gitignore
+# %GITIGNORE_UPDATE_NOTE%
 BUILDDIR        := build
 EXENAME         := %PROJECT_NAME%
 DEPDIR          := deps
