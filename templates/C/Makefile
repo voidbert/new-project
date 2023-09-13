@@ -126,7 +126,7 @@ clean:
 	rm -r $(BUILDDIR) $(DEPDIR) $(DOCSDIR) $(OBJDIR) 2> /dev/null ; true
 
 install: $(BUILDDIR)/$(EXENAME)
-	install -Dm 777 $(BUILDDIR)/$(EXENAME) $(PREFIX)/bin
+	install -Dm 755 $(BUILDDIR)/$(EXENAME) $(PREFIX)/bin
 
 .PHONY: uninstall
 uninstall:
