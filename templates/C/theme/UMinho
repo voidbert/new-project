@@ -1,0 +1,3 @@
+HTML_EXTRA_FILES       = theme
+HTML_EXTRA_STYLESHEET  = theme/UMinho.css
+PROJECT_LOGO           = theme/UMinhoLogo.png
