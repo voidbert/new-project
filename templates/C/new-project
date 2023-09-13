@@ -46,6 +46,32 @@ escape_license_header() {
 	sed 's/[&/\]/\\&/g' | sed -z 's/\n/\\n/g ; s/$/\\n/g'
 }
 
+# Escapes characters in a Doxygen config extension, to make it adequate for sed substitution.
+# Also adds tabs to the beginning of each line, to generate a config aligned with the rest of the
+# Makefile.
+# stdin - Header input
+# stdout - Escaped output
+escape_doxygen_config() {
+	sed "s/[&/\\]/\\\\&/g ; s/^/$(printf '\t')/g" | sed -z 's/\n/\\n/g'
+}
+
+# Asks the user about which Doxygen theme they'd like to use.
+ask_doxygen_theme() {
+	# Use a subshell not to crash (exit 1) on invalid input.
+	if (yesno "Use UMinho's Doxygen theme? [Y/n]: " 2> /tmp/new-project-c-yesno); then
+		doxygen_theme="theme/UMinho"
+	elif [ -s /tmp/new-project-c-yesno ]; then # invalid input
+		echo "Invalid input. Removing project and leaving ..." >&2
+
+		project_dir="$PWD"
+		cd ..
+		rm -r "$project_dir"
+		exit 1
+	else # No (default theme)
+		rm -r theme
+	fi
+}
+
 replace_variables() {
 	echo "$license_header" | comment_c | escape_license_header > "/tmp/new-project-c-header"
 	echo "$license_header" | comment_make_shell | escape_license_header \
@@ -64,7 +90,7 @@ replace_variables() {
 		sed -zi "s/# %LICENSE_HEADER%\\n/$(cat "/tmp/new-project-make-shell-header")/" "$file"
 	done
 
-	# Extra makefile modification for project name
+	# Extra makefile modifications for project name and Doxygen themes
 	sed -i "s/%PROJECT_NAME%/$(echo "$project_name" | sed 's/[&/\]/\\&/g')/g" Makefile
 	if $git; then
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%/# Also, these may need to be updated in .gitignore/g' Makefile
@@ -72,7 +98,20 @@ replace_variables() {
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%\n//g' Makefile
 	fi
 
+	if [ -z "$doxygen_theme" ]; then
+		sed -i 's/ %THEMES_DEP%//g' Makefile
+		sed -zi 's/\n\s%DOXYGEN_THEME%\n//g ; s/%THEMES_DEF%\n//g' Makefile
+	else
+		sed -zi "s/\\s%DOXYGEN_THEME%\\n/$(cat "$doxygen_theme" | escape_doxygen_config)/g" \
+			Makefile
+		sed -i 's:%THEMES_DEF%:THEMES  = $(wildcard theme/*):g ; s/%THEMES_DEP%/$(THEMES)/g' Makefile
+
+		# Remove the file that describes the theme's Doxygen config
+		rm "$doxygen_theme"
+	fi
+
 	rm "/tmp/new-project-c-header" "/tmp/new-project-make-shell-header"
 }
 
+ask_doxygen_theme
 replace_variables

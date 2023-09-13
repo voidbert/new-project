@@ -1,4 +1,3 @@
-# %LICENSE_HEADER%
 # CONFIGURATION VARIABLES
 
 CC              := gcc
@@ -24,6 +23,7 @@ PREFIX          ?= $(HOME)/.local
 
 SOURCES = $(shell find "src" -name '*.c' -type f)
 HEADERS = $(shell find "include" -name '*.h' -type f)
+%THEMES_DEF%
 OBJECTS = $(patsubst src/%.c, $(OBJDIR)/%.o, $(SOURCES))
 DEPENDS = $(patsubst src/%.c, $(DEPDIR)/%.d, $(SOURCES))
 
@@ -115,11 +115,14 @@ define Doxyfile
 	OUTPUT_DIRECTORY       = $(DOCSDIR)
 	GENERATE_HTML          = YES
 	GENERATE_LATEX         = NO
+
+	%DOXYGEN_THEME%
 endef
 export Doxyfile
 
-$(DOCSDIR): $(SOURCES) $(HEADERS)
+$(DOCSDIR): $(SOURCES) $(HEADERS) %THEMES_DEP%
 	echo "$$Doxyfile" | doxygen -
+	@touch docs # Update "last updated" time to now
 
 .PHONY: clean
 clean:
