@@ -122,7 +122,7 @@ export Doxyfile
 
 $(DOCSDIR): $(SOURCES) $(HEADERS) %THEMES_DEP%
 	echo "$$Doxyfile" | doxygen -
-	@touch docs # Update "last updated" time to now
+	@touch $(DOCSDIR) # Update "last updated" time to now
 
 .PHONY: clean
 clean:
