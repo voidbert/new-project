@@ -4,6 +4,16 @@
 
 		--bg-color: #000501;
 		--fg-color: #eeeeee;
+
+		--menu-bg-color: var(--uminho-color);
+		--menu-fg-color: #eeeeee;
+		--menu-bg-hover-color: #ffffff;
+		--menu-fg-hover-color: var(--uminho-color);
+
+		--menu-dropdown-bg-color: var(--bg-color);
+		--menu-dropdown-fg-color: #eeeeee;
+		--menu-dropdown-bg-hover-color: #eeeeee;
+		--menu-dropdown-fg-hover-color: #000000;
 	}
 }
 
@@ -13,6 +23,16 @@
 
 		--bg-color: #ffffff;
 		--fg-color: #000000;
+
+		--menu-bg-color: var(--uminho-color);
+		--menu-fg-color: #eeeeee;
+		--menu-bg-hover-color: var(--bg-color);
+		--menu-fg-hover-color: var(--uminho-color);
+
+		--menu-dropdown-bg-color: #ffffff;
+		--menu-dropdown-fg-color: #000000;
+		--menu-dropdown-bg-hover-color: #ffffff;
+		--menu-dropdown-fg-hover-color: var(--uminho-color);
 	}
 }
 
@@ -24,6 +44,18 @@ html { /* Override Doxygen's CSS variables */
 	/* Title bar */
 	--title-background-color: var(--bg-color) !important;
 	/* --title-separator-color not needed, as border is removed */
+
+	/* Navigation bar */
+	--nav-background-color: var(--menu-bg-color) !important;
+	--nav-foreground-color: var(--menu-fg-color) !important;
+
+	--nav-text-normal-color: var(--menu-fg-color) !important;
+	--nav-text-hover-color: var(--menu-fg-hover-color) !important;
+	--nav-text-active-color: var(--menu-fg-hover-color) !important;
+
+	--nav-menu-button-color: var(--menu-fg-color) !important;
+	--nav-menu-background-color: var(--menu-dropdown-bg-color) !important;
+	--nav-menu-foreground-color: var(--menu-dropdown-fg-color) !important;
 
 	/* Footer */
 	--separator-color: var(--uminho-color) !important;
@@ -46,4 +78,78 @@ html { /* Override Doxygen's CSS variables */
 
 #projectname { /* Title bar: project name */
 	font-weight: bold;
+}
+
+/* Navigation bar */
+
+.sm-dox { /* Navigation bar */
+	background-color: var(--nav-background-color);
+	background-image: none;
+}
+
+.sm-dox a { /* Navigation bar: options */
+	text-shadow: none;
+	font-weight: bold;
+
+	background-image: none !important;
+}
+
+.sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
+	/* Navigation bar: options during interaction */
+
+	background-color: var(--menu-bg-hover-color);
+	background-image: none !important;
+
+	text-shadow: none;
+	font-weight: bold !important;
+	color: var(--menu-fg-hover-color);
+
+	border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	-webkit-border-radius: 0px !important;
+}
+
+@media (min-width: 768px) { /* Navigation bar: dropdown in an horizontal layout */
+	.sm-dox ul {
+		border: 2px solid var(--menu-bg-color);
+	}
+}
+
+.sm-dox ul { /* Navigation bar: dropdown */
+	box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+
+	border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	-webkit-border-radius: 0px !important;
+}
+
+.sm-dox ul::before, .sm-dox ul::after { /* Navigation bar: dropdown arrow */
+	content: none !important; /* Remove arrow */
+}
+
+.sm-dox ul a { /* Navigation bar: dropdown items */
+	color: var(--nav-menu-foreground-color) !important;
+}
+
+.sm-dox ul a:focus, .sm-dox ul a:hover, .sm-dox ul a:active {
+	/* Navigation bar: dropdown items during interaction */
+
+	background-image: none;
+	background-color: var(--menu-dropdown-bg-hover-color);
+	color: var(--menu-dropdown-fg-hover-color) !important;
+	text-shadow: none;
+}
+
+.main-menu-btn-icon, .main-menu-btn-icon::before, .main-menu-btn-icon::after {
+	/* Navigation bar: hambuger menu or X icon */
+
+	transform: translateZ(0); /* For anti-aliasing */
+}
+
+/* Page header */
+
+.header {
+	background-image: none !important; /* Remove shadow */
 }
