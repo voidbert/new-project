@@ -1,5 +1,7 @@
 @media (prefers-color-scheme: dark) {
 	:root {
+		--uminho-color: #981b1f;
+
 		--bg-color: #000501;
 		--fg-color: #eeeeee;
 	}
@@ -7,6 +9,8 @@
 
 @media (prefers-color-scheme: light) {
 	:root {
+		--uminho-color: #981b1f;
+
 		--bg-color: #ffffff;
 		--fg-color: #000000;
 	}
@@ -20,6 +24,10 @@ html { /* Override Doxygen's CSS variables */
 	/* Title bar */
 	--title-background-color: var(--bg-color) !important;
 	/* --title-separator-color not needed, as border is removed */
+
+	/* Footer */
+	--separator-color: var(--uminho-color) !important;
+	--footer-foreground-color: var(--uminho-color) !important;
 }
 
 /* Title bar */
