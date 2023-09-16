@@ -1,3 +1,41 @@
-#projectname {
-	color: pink;
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg-color: #000501;
+		--fg-color: #eeeeee;
+	}
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--bg-color: #ffffff;
+		--fg-color: #000000;
+	}
+}
+
+html { /* Override Doxygen's CSS variables */
+	/* Page settings */
+	--page-background-color: var(--bg-color) !important;
+	--page-foreground-color: var(--fg-color) !important;
+
+	/* Title bar */
+	--title-background-color: var(--bg-color) !important;
+	/* --title-separator-color not needed, as border is removed */
+}
+
+/* Title bar */
+
+#titlearea { /* Title bar */
+	padding: 1rem;
+	width: calc(100% - 2rem);
+
+	border-bottom: none;
+}
+
+#projectlogo img { /* Title bar: project logo icon */
+	width: 5rem;
+	margin-right: 1rem;
+}
+
+#projectname { /* Title bar: project name */
+	font-weight: bold;
 }
