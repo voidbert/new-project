@@ -57,6 +57,21 @@ html { /* Override Doxygen's CSS variables */
 	--nav-menu-background-color: var(--menu-dropdown-bg-color) !important;
 	--nav-menu-foreground-color: var(--menu-dropdown-fg-color) !important;
 
+	/* Search bar */
+	--search-background-color: #ffffff !important;
+	--search-foreground-color: #888888 !important;
+	--search-active-color: #000000 !important;
+
+	--search-filter-background-color: var(--menu-dropdown-bg-color) !important;
+	--search-filter-foreground-color: var(--menu-dropdown-fg-color) !important;
+	--search-filter-highlight-bg-color: var(--menu-dropdown-bg-hover-color) !important;
+	--search-filter-highlight-text-color: var(--menu-dropdown-fg-hover-color) !important;
+	--search-filter-border-color: var(--uminho-color) !important;
+
+	--search-results-foreground-color: var(--menu-dropdown-fg-color) !important;
+	--search-results-background-color: var(--menu-dropdown-bg-color) !important;
+	--search-results-border-color: var(--uminho-color) !important;
+
 	/* Footer */
 	--separator-color: var(--uminho-color) !important;
 	--footer-foreground-color: var(--uminho-color) !important;
@@ -146,6 +161,41 @@ html { /* Override Doxygen's CSS variables */
 	/* Navigation bar: hambuger menu or X icon */
 
 	transform: translateZ(0); /* For anti-aliasing */
+}
+
+/* Search box */
+
+#MSearchBox { /* Search box */
+	box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+
+	border-radius: 0.2em !important;
+	-moz-border-radius: 0.2em !important;
+	-webkit-border-radius: 0.2em !important;
+}
+
+#MSearchSelectWindow { /* Search box: magnifier dropdown */
+	box-shadow: none !important;
+	-moz-box-shadow: none !important;
+	-webkit-box-shadow: none !important;
+
+	border: 2px solid var(--search-filter-border-color) !important;
+	border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	-webkit-border-radius: 0px !important;
+}
+
+.SelectItem { /* Search box: magnifier dropdown items */
+	font: 10pt var(--font-family-search); /* Increase font size */
+}
+
+#MSearchResultsWindow { /* Search box: search results */
+	border: 2px solid var(--search-results-border-color);
+}
+
+#MSearchResultsWindow a {
+	color: var(--page-link-color);
 }
 
 /* Page header */
