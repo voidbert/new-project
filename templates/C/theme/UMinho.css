@@ -12,7 +12,7 @@
 
 		--menu-dropdown-bg-color: var(--bg-color);
 		--menu-dropdown-fg-color: #eeeeee;
-		--menu-dropdown-bg-hover-color: #eeeeee;
+		--menu-dropdown-bg-hover-color: #ffffff;
 		--menu-dropdown-fg-hover-color: #000000;
 	}
 }
@@ -106,17 +106,16 @@ html { /* Override Doxygen's CSS variables */
 	text-shadow: none;
 	font-weight: bold;
 
-	background-image: none !important;
+	background-image: none !important; /* !important used to fix artifact on mouse leave */
 }
 
 .sm-dox a:focus, .sm-dox a:hover, .sm-dox a:active {
 	/* Navigation bar: options during interaction */
 
 	background-color: var(--menu-bg-hover-color);
-	background-image: none !important;
+	background-image: none;
 
 	text-shadow: none;
-	font-weight: bold !important;
 	color: var(--menu-fg-hover-color);
 
 	border-radius: 0px !important;
@@ -127,25 +126,29 @@ html { /* Override Doxygen's CSS variables */
 @media (min-width: 768px) { /* Navigation bar: dropdown in an horizontal layout */
 	.sm-dox ul {
 		border: 2px solid var(--menu-bg-color);
+
+		border-radius: 0.5rem;
+		-moz-border-radius: 0.5rem;
+		-webkit-border-radius: 0.5rem;
 	}
 }
 
 .sm-dox ul { /* Navigation bar: dropdown */
-	box-shadow: none !important;
-	-moz-box-shadow: none !important;
-	-webkit-box-shadow: none !important;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
 
-	border-radius: 0px !important;
-	-moz-border-radius: 0px !important;
-	-webkit-border-radius: 0px !important;
+	border-radius: 0px;
+	-moz-border-radius: 0px;
+	-webkit-border-radius: 0px;
 }
 
 .sm-dox ul::before, .sm-dox ul::after { /* Navigation bar: dropdown arrow */
-	content: none !important; /* Remove arrow */
+	display: none;
 }
 
 .sm-dox ul a { /* Navigation bar: dropdown items */
-	color: var(--nav-menu-foreground-color) !important;
+	color: var(--nav-menu-foreground-color);
 }
 
 .sm-dox ul a:focus, .sm-dox ul a:hover, .sm-dox ul a:active {
@@ -166,24 +169,24 @@ html { /* Override Doxygen's CSS variables */
 /* Search box */
 
 #MSearchBox { /* Search box */
-	box-shadow: none !important;
-	-moz-box-shadow: none !important;
-	-webkit-box-shadow: none !important;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
 
-	border-radius: 0.2em !important;
-	-moz-border-radius: 0.2em !important;
-	-webkit-border-radius: 0.2em !important;
+	border-radius: 0.2em;
+	-moz-border-radius: 0.2em;
+	-webkit-border-radius: 0.2em;
 }
 
 #MSearchSelectWindow { /* Search box: magnifier dropdown */
-	box-shadow: none !important;
-	-moz-box-shadow: none !important;
-	-webkit-box-shadow: none !important;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
 
-	border: 2px solid var(--search-filter-border-color) !important;
-	border-radius: 0px !important;
-	-moz-border-radius: 0px !important;
-	-webkit-border-radius: 0px !important;
+	border: 2px solid var(--search-filter-border-color);
+	border-radius: 0.5rem;
+	-moz-border-radius: 0.5rem;
+	-webkit-border-radius: 0.5rem;
 }
 
 .SelectItem { /* Search box: magnifier dropdown items */
@@ -192,6 +195,10 @@ html { /* Override Doxygen's CSS variables */
 
 #MSearchResultsWindow { /* Search box: search results */
 	border: 2px solid var(--search-results-border-color);
+
+	border-radius: 0.5rem;
+	-moz-border-radius: 0.5rem;
+	-webkit-border-radius: 0.5rem;
 }
 
 #MSearchResultsWindow a {
