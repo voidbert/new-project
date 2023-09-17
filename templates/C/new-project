@@ -79,8 +79,8 @@ replace_variables() {
 
 	mkdir include # not tracked by new-project's git repository
 
-	# License header for C sources and headers
-	find "." -name '*.c' -o -name "*.h" -type f | while read -r file; do
+	# License header for C sources, headers, and the CSS Doxygen theme
+	find "." -name '*.c' -o -name "*.h" -o -name "*.css" -type f | while read -r file; do
 		sed -zi "s/\\/\\* %LICENSE_HEADER% \\*\\/\\n/$(cat "/tmp/new-project-c-header")/" \
 			"$file"
 	done
