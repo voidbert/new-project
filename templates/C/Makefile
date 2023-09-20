@@ -48,16 +48,12 @@ else
 	INCLUDE_DEPENDS = N
 endif
 
-ifeq (Y, $(INCLUDE_DEPENDS))
-include $(DEPENDS)
-endif
-
-ifeq (Y, $(INCLUDE_DEPENDS))
-include $(DEPENDS)
-endif
-
 default: $(BUILDDIR)/$(EXENAME)
 all: $(BUILDDIR)/$(EXENAME) $(DOCSDIR)
+
+ifeq (Y, $(INCLUDE_DEPENDS))
+include $(DEPENDS)
+endif
 
 # Welcome to my unorthodox Makefile! To get auto-dependency generation working, this code is
 # unusual for a Makefile, but hey, it works!
