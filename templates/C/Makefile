@@ -5,7 +5,7 @@ CFLAGS          := -Wall -Wextra -Werror -pedantic
 STANDARDS       := -std=c99 -D_POSIX_C_SOURCE=200809L
 LIBS            := -lm -lpthread
 
-DEBUG_CFLAGS    := -O0 -ggdb
+DEBUG_CFLAGS    := -O0 -ggdb3
 RELEASE_CFLAGS  := -O2
 
 # Note: none of these directories can be the root of the project
