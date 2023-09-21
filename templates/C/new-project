@@ -88,6 +88,7 @@ replace_variables() {
 	# License header for makefiles and shell scripts
 	find "." -name 'Makefile' -o -name '*.sh' -type f | while read -r file; do
 		sed -zi "s/# %LICENSE_HEADER%\\n/$(cat "/tmp/new-project-make-shell-header")/" "$file"
+		sed -i 's/ %THEMES_DIR%/ theme/g' "$file"
 	done
 
 	# Extra makefile modifications for project name and Doxygen themes
@@ -96,6 +97,7 @@ replace_variables() {
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%/# Also, these may need to be updated in .gitignore/g' Makefile
 	else
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%\n//g' Makefile
+		rm scripts/contributors.sh
 	fi
 
 	if [ -z "$doxygen_theme" ]; then
