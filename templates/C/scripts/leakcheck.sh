@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# This script runs the build executable, checking for memory leaks using valgrind.
+# This script runs the built executable, checking for memory leaks using
+# valgrind.
 
 # %LICENSE_HEADER%
 if ! command -v valgrind > /dev/null; then
