@@ -26,7 +26,7 @@ EXE_PATH="$REPO_DIR/$MAKEFILE_BUILDDIR/$MAKEFILE_EXENAME"
 if ! [ -f "$EXE_PATH" ]; then
 	echo "Executable not built! Build it and try again. Leaving ..." >&2
 	exit 1
-elif ! strings "$EXE_PATH" | grep "ggdb"; then
+elif ! strings "$EXE_PATH" | grep -- "-ggdb3" > /dev/null; then
 	printf "Executable not built with debug symbols. Valgrind won't be "
 	printf "able to know which lines of code cause a leak.\n"
 
@@ -47,7 +47,7 @@ valgrind --leak-check=full \
          --show-leak-kinds=all \
          --leak-resolution=high \
          --log-file="$LOG_FILE" \
-         "$EXE_PATH"
+         "$EXE_PATH" "$@"
 
 less "$LOG_FILE"
 rm "$LOG_FILE"

@@ -34,7 +34,7 @@ EXE_PATH="$REPO_DIR/$MAKEFILE_BUILDDIR/$MAKEFILE_EXENAME"
 if ! [ -f "$EXE_PATH" ]; then
 	echo "Executable not built! Build it and try again. Leaving ..." >&2
 	exit 1
-elif ! strings "$EXE_PATH" | grep "ggdb"; then
+elif ! strings "$EXE_PATH" | grep -- "-ggdb3" > /dev/null; then
 	printf "Executable not built with debug symbols. Callgrind's results "
 	printf "won't be the best possible.\n"
 
@@ -53,7 +53,7 @@ fi
 
 OUTPUT="$(mktemp)"
 valgrind --tool=callgrind --collect-jumps=yes --callgrind-out-file="$OUTPUT" \
-	"$EXE_PATH" 2> >(sed -zE \
+	"$EXE_PATH" "$@" 2> >(sed -zE \
 		's/^(==[0-9]*==[^\n]*\n)*//g ; s/(==[0-9]*==[^\n]*\n)*$//g' >&2)
             # |
 		# \_ remove ==[PID]== messages from callgrind
