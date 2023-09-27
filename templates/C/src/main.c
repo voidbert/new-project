@@ -7,6 +7,6 @@
  * @retval 1 Insuccess
  */
 int main(void) {
-	puts("Hello, world!");
-	return 0;
+    puts("Hello, world!");
+    return 0;
 }
