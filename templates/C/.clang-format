@@ -117,7 +117,7 @@ IncludeIsMainSourceRegex: ''
 # -----------
 
 ContinuationIndentWidth: 4
-IndentWidth:	       4
+IndentWidth:             4
 PPIndentWidth:           4
 TabWidth:                4
 UseTab:                  Never
