@@ -76,7 +76,7 @@ BraceWrapping:
   SplitEmptyRecord:      false
 
 BreakBeforeBraces:   Attach
-# InsertBraces:      false # Not implemented in clang 14
+InsertBraces:        false
 RemoveBracesLLVM:    false
 
 # -------------------
@@ -171,7 +171,7 @@ MacroBlockEnd:   ''
 # ------------
 
 DisableFormat:            false
-# InsertNewlineAtEOF:     true # not supported on clang 14
+#InsertNewlineAtEOF:      true # Not supported by clang 15. Handled by format.sh
 InsertTrailingCommas:     None
 QualifierAlignment:       Leave
 SeparateDefinitionBlocks: Always

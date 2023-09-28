@@ -24,7 +24,7 @@ diff_path="$(mktemp)"
 mkdir "$out_dir/src" "$out_dir/include"
 
 find src include -type f | while read -r file; do
-	clang-format "$file" > "$out_dir/$file"
+	clang-format "$file" | sed '$a\' > "$out_dir/$file"
 done
 
 git --no-pager -c color.ui=always diff --no-index "src" "$out_dir/src" \
