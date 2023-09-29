@@ -36,9 +36,14 @@ if ! [ -s "$diff_path" ]; then
 	echo "Already formatted! Leaving ..."
 	rm -r "$diff_path" "$out_dir"
 	exit 0
+elif [ "$1" = "--check" ]; then
+	echo "Formatting errors!"
+	cat "$diff_path"
+	rm -r "$diff_path" "$out_dir"
+	exit 1
+else
+	less -R "$diff_path"
 fi
-
-less -R "$diff_path"
 
 stdbuf -o 0 printf "Agree with these changes? [Y/n]: "
 read -r RESULT
