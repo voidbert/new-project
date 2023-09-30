@@ -1,4 +1,8 @@
 /* %LICENSE_HEADER% */
+/**
+ * @file main.c
+ * @brief Contains the entry point to the program.
+ */
 #include <stdio.h>
 
 /**
