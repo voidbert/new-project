@@ -97,7 +97,7 @@ replace_variables() {
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%/# Also, these may need to be updated in .gitignore/g' Makefile
 	else
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%\n//g' Makefile
-		rm scripts/contributors.sh
+		rm -r .github scripts/contributors.sh
 	fi
 
 	if [ -z "$doxygen_theme" ]; then
