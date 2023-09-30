@@ -95,6 +95,7 @@ replace_variables() {
 	sed -i "s/%PROJECT_NAME%/$(echo "$project_name" | sed 's/[&/\]/\\&/g')/g" Makefile
 	if $git; then
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%/# Also, these may need to be updated in .gitignore/g' Makefile
+		cat DEVELOPERS_git.md >> DEVELOPERS.md
 	else
 		sed -zi 's/# %GITIGNORE_UPDATE_NOTE%\n//g' Makefile
 		rm -r .github scripts/contributors.sh
@@ -103,15 +104,20 @@ replace_variables() {
 	if [ -z "$doxygen_theme" ]; then
 		sed -i 's/ %THEMES_DEP%//g' Makefile
 		sed -zi 's/\n\s%DOXYGEN_THEME%\n//g ; s/%THEMES_DEF%\n//g' Makefile
+		sed -i '/^%UNI_NOTICE%$/d' README.md
 	else
 		sed -zi "s/\\s%DOXYGEN_THEME%\\n/$(cat "$doxygen_theme" | escape_doxygen_config)/g" \
 			Makefile
 		sed -i 's:%THEMES_DEF%:THEMES  = $(wildcard theme/*):g ; s/%THEMES_DEP%/$(THEMES)/g' Makefile
+		sed -i "s/%UNI_NOTICE%/As a university project, external contributors aren't allowed./g" README.md
 
 		# Remove the file that describes the theme's Doxygen config
 		rm "$doxygen_theme"
 	fi
 
+	sed -i "s/%PROJECT_NAME%/$(echo "$project_name" | sed 's/[&/\]/\\&/g')/g" README.md
+
+	rm "DEVELOPERS_git.md"
 	rm "/tmp/new-project-c-header" "/tmp/new-project-make-shell-header"
 }
 
