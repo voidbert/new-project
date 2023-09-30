@@ -23,11 +23,11 @@ MAKEFILE_EXENAME="$(< "$REPO_DIR/Makefile" \
 	grep '^EXENAME\s*:=' | sed 's/^EXENAME\s*:=\s*//g')"
 EXE_PATH="$REPO_DIR/$MAKEFILE_BUILDDIR/$MAKEFILE_EXENAME"
 
-if ! [ -f "$EXE_PATH" ]; then
+if ! [ -f "$EXE_PATH" ] || ! [ -f "${EXE_PATH}_type" ]; then
 	echo "Executable not built! Build it and try again. Leaving ..." >&2
 	exit 1
-elif ! strings "$EXE_PATH" | grep -- "-ggdb3" > /dev/null; then
-	printf "Executable not built with debug symbols. Valgrind won't be "
+elif [ "$(cat "${EXE_PATH}_type")" != "DEBUG" ]; then
+	printf "Executable not built in DEBUG mode. Valgrind won't be "
 	printf "able to know which lines of code cause a leak.\n"
 
 	stdbuf -o 0 printf "Proceed? [Y/n]: "

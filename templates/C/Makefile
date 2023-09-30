@@ -7,6 +7,7 @@ LIBS            := -lm -lpthread
 
 DEBUG_CFLAGS    := -O0 -ggdb3
 RELEASE_CFLAGS  := -O2
+PROFILE_CFLAGS  := -O2 -ggdb3
 
 # Note: none of these directories can be the root of the project
 # %GITIGNORE_UPDATE_NOTE%
@@ -29,8 +30,13 @@ DEPENDS = $(patsubst src/%.c, $(DEPDIR)/%.d, $(SOURCES))
 
 ifeq ($(DEBUG), 1)
 	CFLAGS += $(DEBUG_CFLAGS)
+	BUILD_TYPE = DEBUG
+else ifeq ($(PROFILE), 1)
+	CFLAGS += $(PROFILE_CFLAGS)
+	BUILD_TYPE = PROFILE
 else
 	CFLAGS += $(RELEASE_CFLAGS)
+	BUILD_TYPE = RELEASE
 endif
 CFLAGS += $(STANDARDS)
 
@@ -95,8 +101,9 @@ $(DEPDIR)/%.d: src/%.c Makefile
 	@printf "\t$(RULE_CMD_ADD_COMMANDS)\n" >> $@
 	@printf "\t$(RULE_CMD_COPY)\n" >> $@
 
-$(BUILDDIR)/$(EXENAME): $(OBJECTS)
+$(BUILDDIR)/$(EXENAME) $(BUILDDIR)/$(EXENAME)_type: $(OBJECTS)
 	@mkdir -p $(BUILDDIR)
+	@echo $(BUILD_TYPE) > $(BUILDDIR)/$(EXENAME)_type
 	$(CC) -o $@ $^ $(LIBS)
 
 define Doxyfile
