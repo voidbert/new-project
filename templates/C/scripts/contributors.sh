@@ -4,14 +4,8 @@
 # each contributor.
 
 # %LICENSE_HEADER%
-if ! command -v git > /dev/null; then
-	printf "git not installed! Please install it and try again. " >&2
-	echo   "Leaving ..." >&2
-	exit 1
-fi
-
-REPO_DIR="$(realpath "$(dirname -- "$0")/..")"
-cd "$REPO_DIR"
+. "$(dirname "$0")/utils.sh"
+assert_installed_command git
 
 find Makefile src include scripts %THEMES_DIR% -type f \
 	-exec grep -I -q . {} \; -print | while read -r file; do

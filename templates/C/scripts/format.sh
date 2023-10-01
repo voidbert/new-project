@@ -4,20 +4,10 @@
 # the changes.
 
 # %LICENSE_HEADER%
-if ! command -v clang-format > /dev/null; then
-	printf "clang-format not installed! Please install it and try again. " >&2
-	echo   "Leaving ..." >&2
-	exit 1
-fi
+. "$(dirname "$0")/utils.sh"
 
-if ! command -v git > /dev/null; then # For diffs
-	printf "git not installed! Please install it and try again. " >&2
-	echo   "Leaving ..." >&2
-	exit 1
-fi
-
-REPO_DIR="$(realpath "$(dirname -- "$0")/..")"
-cd "$REPO_DIR"
+assert_installed_command clang-format
+assert_installed_command git
 
 out_dir="$(mktemp -d)"
 diff_path="$(mktemp)"
@@ -45,17 +35,11 @@ else
 	less -R "$diff_path"
 fi
 
-stdbuf -o 0 printf "Agree with these changes? [Y/n]: "
-read -r RESULT
-
-if echo "$RESULT" | grep -Eq '^[Nn][Oo]?$'; then
+if yesno "Agree with these changes? [Y/n]: " true; then
+	perform_changes=true
+else
 	echo "Source code left unformatted. Leaving ..."
 	perform_changes=false
-elif ! echo "$RESULT" | grep -Eq '^[Yy]([Ee][Ss])?$'; then
-	echo "Invalid input. Leaving ..."
-	perform_changes=false
-else
-	perform_changes=true
 fi
 
 if $perform_changes; then
