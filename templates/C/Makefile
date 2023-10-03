@@ -107,7 +107,7 @@ $(BUILDDIR)/$(EXENAME) $(BUILDDIR)/$(EXENAME)_type: $(OBJECTS)
 	$(CC) -o $@ $^ $(LIBS)
 
 define Doxyfile
-	INPUT                  = include src README.md
+	INPUT                  = include src README.md DEVELOPERS.md
 	RECURSIVE              = YES
 	EXTRACT_ALL            = YES
 	FILE_PATTERNS          = *.h *.c
