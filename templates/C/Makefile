@@ -136,4 +136,4 @@ install: $(BUILDDIR)/$(EXENAME)
 
 .PHONY: uninstall
 uninstall:
-	rm $(PREFIX)/bin/%PROJECT_NAME%
+	rm $(PREFIX)/bin/$(EXENAME)
