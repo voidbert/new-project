@@ -1,5 +1,11 @@
 name: Maintenance checks
-on: [ pull_request ]
+on:
+    pull_request:
+        paths:
+            - '.github/workflows/**'
+            - 'src/**'
+            - 'include/**'
+            - 'Makefile'
 jobs:
     build:
         runs-on: ubuntu-latest
