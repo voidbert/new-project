@@ -35,4 +35,5 @@ valgrind --tool=callgrind --collect-jumps=yes --callgrind-out-file="$OUTPUT" \
 		# |
 		# \_ remove ==[PID]== messages from callgrind
 
-kcachegrind "$OUTPUT" &> /dev/null && rm "$OUTPUT" &> /dev/null &!
+sh -c "kcachegrind \"$OUTPUT\" ; rm \"$OUTPUT\"" &> /dev/null &
+disown
