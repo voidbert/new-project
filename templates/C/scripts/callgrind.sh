@@ -19,8 +19,8 @@ if ! [ -f "$EXE_PATH" ] || ! [ -f "${EXE_PATH}_type" ]; then
 	echo "Executable not built! Build it and try again. Leaving ..." >&2
 	exit 1
 elif [ "$(cat "${EXE_PATH}_type")" != "PROFILE" ]; then
-	printf "Executable not built in PROFILE mode. Callgrind's results "
-	printf "won't be the best possible.\n"
+	printf "Executable not built in PROFILE mode %s" "($(cat "${EXE_PATH}_type") "
+	printf "used instead). Callgrind's results won't be the best possible.\n"
 
 	if ! yesno "Proceed? [Y/n]: "; then
 		echo "User cancelled action. Leaving ..."

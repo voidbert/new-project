@@ -10,7 +10,7 @@ if [ "$(basename "$0")" = "utils.sh" ]; then
 fi
 
 REPO_DIR="$(realpath "$(dirname -- "$0")/..")"
-cd "$REPO_DIR"
+cd "$REPO_DIR" || exit 1
 
 # Gets an environment variable from the Makefile. It must a constant, without
 # quotes and independent from other variables, as its value is gotten by
@@ -34,7 +34,7 @@ get_makefile_const() {
 # $1 - name of the command
 assert_installed_command() {
 	if ! command -v "$1" > /dev/null; then
-		printf "$1 is not installed! Please install it and try again. " >&2
+		printf "%s is not installed! Please install it and try again. " "$1" >&2
 		echo   "Leaving ..." >&2
 		exit 1
 	fi

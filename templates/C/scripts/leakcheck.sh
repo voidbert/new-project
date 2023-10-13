@@ -16,8 +16,9 @@ if ! [ -f "$EXE_PATH" ] || ! [ -f "${EXE_PATH}_type" ]; then
 	echo "Executable not built! Build it and try again. Leaving ..." >&2
 	exit 1
 elif [ "$(cat "${EXE_PATH}_type")" != "DEBUG" ]; then
-	printf "Executable not built in DEBUG mode. Valgrind won't be "
-	printf "able to know which lines of code cause a leak.\n"
+	printf "Executable not built in DEBUG mode %s" "($(cat "${EXE_PATH}_type") "
+	printf "used instead). Valgrind won't be able to know which lines of code"
+	printf "cause a leak.\n"
 
 	if ! yesno "Proceed? [Y/n]: "; then
 		echo "User cancelled action. Leaving ..."
