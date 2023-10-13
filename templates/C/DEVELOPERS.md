@@ -9,6 +9,7 @@ Some programs, not listed in [README.md](README.md), are not required to build t
 - [Doxygen](https://www.doxygen.nl/) (documentation generation);
 - [Valgrind](https://valgrind.org/) (profiling and leak checking);
 - [Kcachegrind](https://invent.kde.org/sdk/kcachegrind) (seeing profiling results);
+- [ShellCheck](https://www.shellcheck.net/) (static analysis of scripts);
 - [act](https://nektosact.com) (running GitHub actions locally).
 
 ## Other build types
