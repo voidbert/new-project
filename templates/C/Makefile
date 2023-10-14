@@ -61,45 +61,27 @@ ifeq (Y, $(INCLUDE_DEPENDS))
 include $(DEPENDS)
 endif
 
-# Welcome to my unorthodox Makefile! To get auto-dependency generation working, this code is
-# unusual for a Makefile, but hey, it works!
+# Welcome to my unorthodox meta-programming Makefile! To get auto-dependency generation working,
+# this code is unusual for a Makefile, but hey, it works!
 #
 # To compile a source file, a makefile rule is generated with $(CC) -MM, to account for header
 # dependencies. The commands that actually compile the source are added to that rule file before
-# its included.
+# its included. A script is also run in the end of the generated rule's execution, to regenerate
+# that same rule with any dependency change that may have occurred.
 $(DEPDIR)/%.d: src/%.c Makefile
 	$(eval OBJ := $(patsubst src/%.c, $(OBJDIR)/%.o, $<))
 
-	@# Commands to make the object's file directory, compile the source and re-generate the file
-	@# dependencies to $@2 while compiling. The dependencies are modifed (format), to put them in
-	@# a single line and to add the dependency file to the rule's outputs.
-	@#
-	@# An echo command is used to give feedback on GCC (instead of make's output), to remove the
-	@# preprocessor options related to dependency generation.
-
 	$(eval RULE_CMD_MKDIR = @mkdir -p $(shell dirname $(OBJ)))
-	$(eval RULE_CMD_FEEDBACK = @echo $(CC) -c -o $(OBJ) $< $(CFLAGS) -Iinclude)
-	$(eval RULE_CMD_GCC = @$(CC) -MMD -MT $(OBJ) -MF $@2 -MP -c -o $(OBJ) $< $(CFLAGS) -Iinclude)
-	$(eval RULE_CMD_FORMAT = @sed -ze 's/ \\\\\\\\\\\\n//g ; s|$(OBJ):|$(OBJ) $@:|g' -i $@2)
-
-	@# Create another temporary dependency file ($@3), to update the dependencies, but keeping
-	@# the compiler commands form $@. Then, $@3 is copied into $@ and the temporary files are
-	@# removed.
-	$(eval RULE_CMD_ADD_COMMANDS = @head -n1 $@2 > $@3 ; \
-	                                tail -n+2 $@ | grep '^\\s' >> $@3 ; \
-	                                tail -n+2 $@2 >> $@3)
-	$(eval RULE_CMD_COPY = @cp $@3 $@ ; rm $@2 $@3)
+	$(eval RULE_CMD_CC = $(CC) -MMD -MT "$(OBJ)" -MF $@2 -c -o $(OBJ) $< $(CFLAGS) -Iinclude)
+	$(eval RULE_CMD_SCRIPT = @./scripts/makefilehelper.sh $@)
 
 	@# Create the dependency file for the first time, adding all the commands.
 	@mkdir -p $(shell dirname $@)
-	$(CC) -MM $< -MT $(OBJ) -Iinclude > $@
+	$(CC) -MM $< -MT $(OBJ) -MF $@ -Iinclude
 
-	@printf "\t$(RULE_CMD_MKDIR)\n" >> $@
-	@printf "\t$(RULE_CMD_FEEDBACK)\n" >> $@
-	@printf "\t$(RULE_CMD_GCC)\n" >> $@
-	@printf "\t$(RULE_CMD_FORMAT)\n" >> $@
-	@printf "\t$(RULE_CMD_ADD_COMMANDS)\n" >> $@
-	@printf "\t$(RULE_CMD_COPY)\n" >> $@
+	@printf "\t%s\n" "$(RULE_CMD_MKDIR)" >> $@
+	@printf "\t%s\n" "$(RULE_CMD_CC)" >> $@
+	@printf "\t%s\n" "$(RULE_CMD_SCRIPT)" >> $@
 
 $(BUILDDIR)/$(EXENAME) $(BUILDDIR)/$(EXENAME)_type: $(OBJECTS)
 	@mkdir -p $(BUILDDIR)
